@@ -1,0 +1,108 @@
+{% extends 'base_main.html' %}
+
+{% block css %}
+    {{ block.super }}
+    <style>
+    .dataStatistic{width:400px;height:200px;border:1px solid #ccc;margin:0 auto;margin:10px;overflow:hidden}
+    #cylindrical{width:400px;height:200px;margin-top:-15px}
+    #line{width:400px;height:200px;margin-top:-15px}
+    #pie{width:400px;height:200px;margin-top:-15px}
+    </style>
+{% endblock %}
+
+{% block js %}
+        {{ block.super }}
+    <script>
+        $(function (){
+            $('.table .center #delete_id').click(
+            function func() {
+                var name = $(this);
+                var id = name.attr('rel');
+                var csrf = $('input[name="csrfmiddlewaretoken"]').val()
+
+                if(confirm('确认删除?')){
+                   $.ajax({
+                       type: "POST",
+                       url: "/goods/goods_delete/"+id+"/",
+                       dataType:'json',
+                       headers:{'X-CSRFToken':csrf},
+                       cache: false, //不缓存此页面
+                       success: function (data) {
+                           alert('删除成功')
+                           if(data.code == '200') {
+                               window.location.reload();
+                           }
+                       },
+                       error: function (data) {
+                         alert('删除失败')
+                       }
+
+                   })
+                }
+            }
+        )
+        })
+
+    </script>
+{% endblock %}
+{% block content %}
+    <section class="rt_wrap content mCustomScrollbar">
+    <div class="rt_content">
+        <div class="page_title">
+            <h2 class="fl">商品列表</h2>
+            <a href="{% url 'goods:goods_detail' %}" class="fr top_rt_btn add_icon">添加商品</a>
+        </div>
+        <table class="table">
+          {% csrf_token %}
+            <tr>
+                <th>缩略图</th>
+                <th>产品名称</th>
+                <th>商品类型</th>
+                <th>货号</th>
+                <th>市场单价</th>
+                <th>本店单价</th>
+                <th>库存</th>
+                <th>详情</th>
+                <th>操作</th>
+            </tr>
+            {% for good in one_page_goods %}
+                <tr>
+                    <td class="center"><img src="/media/{{ good.goods_front_image}}" width="50" height="50" alt="" /></td>
+                    <td class="center">{{ good.name }}</td>
+                    <td class="center">
+                        {% for type in types %}
+                            {% ifequal type.0 good.category.id %}
+                                {{ type.1 }}
+                            {% endifequal %}
+                        {% endfor %}
+                    </td>
+                    <td class="center">{{ good.goods_sn }}</td>
+                    <td class="center"><strong class="rmb_icon">{{ good.market_price }}</strong></td>
+                    <td class="center"><strong class="rmb_icon">{{ good.shop_price }}</strong></td>
+                    <td class="center">{{ good.goods_nums }}</td>
+                    <td class="center">
+                        <a href="{% url 'goods:goods_desc' good.id %}">{{ good.name }}的描述</a>
+                    </td>
+                    <td class="center">
+                        <a href="{% url 'goods:goods_detail' %}?id={{ good.id }}" title="编辑" class="link_icon">&#101;</a>
+                        <a id='delete_id' rel="{{ good.id }}" title="删除" class="link_icon">&#100;</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+        <aside class="paging">
+            <a>当前{{ page }}页</a>
+            <a href="{% url 'goods:goods_list' %}?page=1">第一页</a>
+                {% for i in one_page_goods.paginator.page_range %}
+                    {% if forloop.counter <= 5 %}
+                <a href="{% url 'goods:goods_list' %}?page={{ i }}"> {{ i }} </a>
+                    {% endif %}
+                {% endfor %}
+
+            <a href="{% url 'goods:goods_list' %}?page={{ last_page }}">最后一页</a>
+        </aside>
+    </div>
+</section>
+{% endblock %}
+
+

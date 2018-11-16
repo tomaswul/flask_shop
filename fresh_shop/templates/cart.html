@@ -1,0 +1,162 @@
+{% extends 'base_main.html' %}
+
+{% block title %}
+    天天生鲜-购物车
+{% endblock %}
+{% block js %}
+     <script type="text/javascript" src="/static/js/jquery-1.12.2.js"></script>
+    <script>
+     var all_total_price = 0;
+        $(function () {
+
+            {% for goods_dict in cart_list %}
+                var num = parseInt($('#num_show{{ goods_dict.id }}').val());
+                var shop_price = parseFloat($('#shop_price{{ goods_dict.id}}').html());
+                var total_price = num * shop_price;
+                all_total_price += total_price;
+                $('#total_price{{ goods_dict.id }}').html(total_price + '元');
+            {% endfor %}
+            $('#all_price').html(all_total_price + '元');
+
+
+            $('.num_add .add').click(function () {
+
+
+                var num_node = $(this).next('input');
+                var markt_price = $(this).attr('rel');
+                var num = num_node.val();
+                var new_num = parseInt(num) + 1;
+                var total_price = num_node.parent().parent().next('li');
+                var new_total_price = new_num * parseFloat(markt_price);
+                num_node.val(new_num);
+                total_price.html(new_total_price + '元');
+                total_price.attr('rel', new_total_price)
+
+                all_total_price += parseFloat(markt_price)
+
+                $('#all_price').html(all_total_price + '元')
+                var csrf = $('input[name="csrfmiddlewaretoken"]').val()
+                var id = $('#goods_id').val()
+                $.ajax({
+                    url:'/cart/addcart/',
+                    dataType: 'json',
+                    type: 'POST',
+                    data: {'goods_id': id, 'goods_nums': new_num, 'add':true},
+                    headers:{'X-CSRFToken':csrf},
+                    success:function (data) {
+
+                    },
+                    error:function(data){
+
+                    },
+                })
+            })
+
+
+            $('.num_add .minus').click(function () {
+                var num_node = $(this).prev('input')
+                var markt_price = $(this).attr('rel');
+                var num = num_node.val();
+                var new_num = 0;
+                var total_price = num_node.parent().parent().next('li');
+
+
+
+                total_price.attr('rel', new_total_price)
+                if ((parseInt(num)) > 0) {
+                    new_num = parseInt(num) - 1;
+                    all_total_price -= parseFloat(markt_price)
+                }
+                num_node.val(new_num);
+                var new_total_price = new_num * parseFloat(markt_price);
+                total_price.html(new_total_price + '元');
+                $('#all_price').html(all_total_price + '元')
+
+                var csrf = $('input[name="csrfmiddlewaretoken"]').val()
+                var id = $('#goods_id').val()
+                $.ajax({
+                    url:'/cart/addcart/',
+                    dataType: 'json',
+                    type: 'POST',
+                    data: {'goods_id': id, 'goods_nums': new_num, 'add':true},
+                    headers:{'X-CSRFToken':csrf},
+                    success:function (data) {
+
+                    },
+                    error:function(data){
+
+                    },
+                })
+
+            })
+
+
+            $('.col08 a').click(function() {
+                var csrf = $('input[name="csrfmiddlewaretoken"]').val()
+                var id = $(this).attr('rel')
+
+
+                 $.ajax({
+                    url:'/cart/delcart/',
+                    dataType: 'json',
+                    type: 'POST',
+                    data: {'goods_id': id},
+                    headers:{'X-CSRFToken':csrf},
+                    success:function (data) {
+                        alert('删除成功')
+                        window.location.reload()
+                    },
+                    error:function(data){
+                        alert('删除失败')
+                        window.location.reload()
+                    },
+                })
+
+            })
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+
+	<div class="total_count">全部商品<em>{{ len }}</em>件</div>
+	<ul class="cart_list_th clearfix">
+		<li class="col01">商品名称</li>
+		<li class="col02">商品单位</li>
+		<li class="col03">商品价格</li>
+		<li class="col04">数量</li>
+		<li class="col05">小计</li>
+		<li class="col06">操作</li>
+	</ul>
+
+    {% for goods_dict in cart_list %}
+
+	<ul class="cart_list_td clearfix">
+        {% csrf_token %}
+        <input type="hidden" id="goods_id"  value="{{ goods_dict.goods.id }}">
+		<li class="col01"><input type="checkbox" name="" checked></li>
+		<li class="col02"><img src="/media/{{ goods_dict.goods.goods_front_image }}"></li>
+		<li class="col03">{{ goods_dict.goods.name }}<br><em>{{ goods_dict.goods.shop_price }}元/500g</em></li>
+		<li class="col04">500g</li>
+		<li id='shop_price{{ goods_dict.id }}' class="col05" rel="">{{ goods_dict.goods.shop_price }}元</li>
+		<li class="col06">
+			<div class="num_add">
+				<a href="javascript:void(0);" class="add fl"  rel="{{ goods_dict.goods.shop_price }}">+</a>
+				<input type="text" class="num_show fl" value="{{ goods_dict.nums }}" id="num_show{{ goods_dict.id }}">
+				<a href="javascript:;" class="minus fl" rel="{{ goods_dict.goods.shop_price }}">-</a>
+			</div>
+		</li>
+		<li class="col07" id="total_price{{ goods_dict.id }}">{{ goods_dict.goods.shop_price }}</li>
+		<li class="col08"><a href="javascript:void(0);" rel="{{ goods_dict.goods.id }}">删除</a></li>
+	</ul>
+
+    {% endfor %}
+    <ul class="settlements">
+		<li class="col01"><input type="checkbox" name="" checked=""></li>
+		<li class="col02">全选</li>
+		<li class="col03" id="all_price">合计(不含运费)：<span>¥</span><em>42.60</em><br>共计<b>{{ len }}</b>件商品</li>
+		<li class="col04"><a href="{% url 'order:place_order' %}">去结算</a></li>
+	</ul>
+
+
+{% endblock %}

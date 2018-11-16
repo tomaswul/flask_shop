@@ -1,0 +1,92 @@
+{% extends 'base_main.html' %}
+
+{% block title %}
+    天天生鲜-用户中心
+{% endblock %}
+{% block js %}
+    <script type="text/javascript" src="/static/js/jquery-1.12.2.js"></script>
+    <script>
+    $(function () {
+
+        {% for order in orders %}
+            var total_price = 0;
+            {% for ogoods in order.goods.all %}
+
+                var shop_price = parseFloat($('#price{{ ogoods.id }}').html());
+                var num = parseInt($('#num{{ ogoods.id }}').html());
+                var s_price = num * shop_price;
+                $('#sprice{{ ogoods.id }}').html(s_price+'元');
+                total_price += s_price;
+
+            {% endfor %}
+            $('#tprice{{ order.id }}').html(total_price+ '元');
+        {% endfor %}
+
+
+    });
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="main_con clearfix">
+		<div class="left_menu_con clearfix">
+			<h3>用户中心</h3>
+			<ul>
+				<li><a href="{% url 'user:user_center_info' %}">· 个人信息</a></li>
+				<li><a href="{% url 'user:user_center_order' %}" class="active">· 全部订单</a></li>
+				<li><a href="{% url 'user:user_center_site' %}">· 收货地址</a></li>
+			</ul>
+		</div>
+		<div class="right_content clearfix">
+				<h3 class="common_title2">全部订单</h3>
+                {% for order in orders %}
+				<ul class="order_list_th w978 clearfix">
+					<li class="col01">{{ order.add_time }}</li>
+					<li class="col02">订单号：{{ order.order_sn }}</li>
+					<li class="col02 stress">未支付</li>
+				</ul>
+
+				<table class="order_list_table w980">
+					<tbody>
+						<tr>
+							<td width="55%">
+                                {% for ogoods in order.goods.all %}
+
+								<ul class="order_goods_list clearfix">
+									<li class="col01"><img src="/media/{{ ogoods.goods.goods_front_image }}"></li>
+									<li class="col02">{{ ogoods.goods.name }}<em id="price{{ ogoods.id }}">{{ ogoods.goods.shop_price }}元/500g</em></li>
+									<li class="col03" id="num{{ ogoods.id }}">{{ ogoods.goods_nums}}</li>
+									<li class="col04" id="sprice{{ ogoods.id }}"></li>
+								</ul>
+                                {% endfor %}
+							</td>
+							<td width="15%" id="tprice{{ order.id }}">33.60元</td>
+							<td width="15%">待付款</td>
+							<td width="15%"><a href="#" class="oper_btn">去付款</a></td>
+						</tr>
+					</tbody>
+				</table>
+                {% endfor %}
+
+
+				<div class="pagenation">
+                    {% if orders.has_previous %}
+					<a href="{% url 'user:user_center_order' %}?page={{ orders.previous_page_number }}">上一页</a>
+                    {% endif %}
+
+                    {% for i in orders.paginator.page_range  %}
+                        {% ifequal i page %}
+					        <a href="{% url 'user:user_center_order' %}?page={{ i }}" class="active">{{ i }}</a>
+                        {% else %}
+                            <a href="{% url 'user:user_center_order' %}?page={{ i }}">{{ i }}</a>
+                        {% endifequal %}
+
+                    {% endfor %}
+
+                    {% if orders.has_next %}
+					<a href="{% url 'user:user_center_order' %}?page={{ orders.next_page_number }}">下一页></a>
+                    {% endif %}
+				</div>
+		</div>
+	</div>
+{% endblock %}

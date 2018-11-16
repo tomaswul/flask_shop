@@ -1,0 +1,61 @@
+{% extends 'base_main.html' %}
+{% block css %}
+    {{ block.super }}
+    <style>
+    .dataStatistic{width:400px;height:200px;border:1px solid #ccc;margin:0 auto;margin:10px;overflow:hidden}
+    #cylindrical{width:400px;height:200px;margin-top:-15px}
+    #line{width:400px;height:200px;margin-top:-15px}
+    #pie{width:400px;height:200px;margin-top:-15px}
+    </style>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript" src="/static/kindeditor/kindeditor-all.js"></script>
+    <script type="text/javascript" src="/static/kindeditor/lang/zh-CN.js"></script>
+    <script type="text/javascript">
+        KindEditor.ready(function(K) {
+                window.editor = K.create('#editor_id',{
+                    {#上传图片的地址#}
+                    uploadJson:'/util/upload/kindeditor'
+                });
+        });
+    </script>
+
+{% endblock %}
+
+
+{% block content %}
+<section class="rt_wrap">
+
+    <div class="rt_content">
+        <div class="page_title">
+            <h2 class="fl">商品详情</h2>
+            <a class="fr top_rt_btn" href="{% url 'goods:goods_list' %}">返回商品列表</a>
+        </div>
+        <form action="{% url 'goods:goods_desc' goods.id %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <section>
+                <ul class="ulColumn2">
+                    <li>
+                        <span class="item_name" style="width:120px;">产品详情：</span>
+                        <label style="display:inline-block;padding:15px;background:#f8f8f8;">
+                            <textarea id="editor_id" style="width:700px;" name="goods_desc">
+                                {% if goods.goods_desc != null %}
+                                {{ goods.goods_desc | safe }}
+                                {% endif %}
+                            </textarea>
+                        </label>
+                    </li>
+                    <li>
+                        <span class="item_name" style="width:120px;"></span>
+                        <input type="submit" class="link_btn"/>
+                    </li>
+                </ul>
+            </section>
+        </form>
+    </div>
+</section>
+
+{% endblock %}
+

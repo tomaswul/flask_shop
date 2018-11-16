@@ -1,0 +1,250 @@
+{% extends 'base_main.html' %}
+
+{% block title %}
+    天天生鲜-商品详情
+{% endblock %}
+
+{% block search_bar %}
+    <div class="search_bar clearfix">
+		<a href="{% url 'goods:index' %}" class="logo fl"><img src="/static/images/logo.png"></a>
+		<div class="search_con fl">
+			<input type="text" class="input_text fl" name="" placeholder="搜索商品">
+			<input type="button" class="input_btn fr" name="" value="搜索">
+		</div>
+		<div class="guest_cart fr">
+			<a href="{% url 'cart:addcart' %}" class="cart_name fl">我的购物车</a>
+			<div class="goods_count fl" id="show_count">{{ len }}</div>
+		</div>
+	</div>
+{% endblock %}
+
+{% block content %}
+    <div class="navbar_con">
+		<div class="navbar clearfix">
+			<div class="subnav_con fl">
+				<h1>全部商品分类</h1>
+				<span></span>
+				<ul class="subnav">
+					<li><a href="#" class="fruit">新鲜水果</a></li>
+					<li><a href="#" class="seafood">海鲜水产</a></li>
+					<li><a href="#" class="meet">猪牛羊肉</a></li>
+					<li><a href="#" class="egg">禽类蛋品</a></li>
+					<li><a href="#" class="vegetables">新鲜蔬菜</a></li>
+					<li><a href="#" class="ice">速冻食品</a></li>
+				</ul>
+			</div>
+			<ul class="navlist fl">
+				<li><a href="">首页</a></li>
+				<li class="interval">|</li>
+				<li><a href="">手机生鲜</a></li>
+				<li class="interval">|</li>
+				<li><a href="">抽奖</a></li>
+			</ul>
+		</div>
+	</div>
+
+	<div class="breadcrumb">
+		<a href="#">全部分类</a>
+		<span>></span>
+		<a href="#">新鲜水果</a>
+		<span>></span>
+		<a href="#">商品详情</a>
+	</div>
+
+	<div class="goods_detail_con clearfix">
+		<div class="goods_detail_pic fl"><img src="/media/{{ goods.goods_front_image }}"></div>
+
+		<div class="goods_detail_list fr">
+            {% csrf_token %}
+            <input type="hidden" id="goods_id" value="{{ goods.id }}">
+			<h3>{{ goods.name }}</h3>
+			<p>{{ goods.goods_brief }}</p>
+			<div class="prize_bar">
+				<span class="show_pirze">¥<em id="shop_price">{{ goods.shop_price }}</em></span>
+				<span class="show_unit">单  位：500g</span>
+			</div>
+			<div class="goods_num clearfix">
+				<div class="num_name fl">数 量：</div>
+				<div class="num_add fl">
+					<input id='g_num' type="text" class="num_show fl" value="1">
+					<a id='add_num' href="javascript:void(0);" class="add fr" rel="{{ goos.shop_price }}">+</a>
+					<a id='dri_num' href="javascript:void(0);" class="minus fr" rel="{{ goos.shop_price }}">-</a>
+				</div>
+
+                <div class="num_name fl">库存：</div>
+                <div id="g_g_number" class="num_name fl">{{ goods.goods_nums }}</div>
+			</div>
+			<div class="total">总价：<em id="total_price">{{ goods.shop_price }}￥</em></div>
+			<div class="operate_btn">
+				<a href="javascript:void(0);" class="buy_btn">立即购买</a>
+				<a href="javascript:void(0);" class="add_cart" id="add_cart">加入购物车</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="main_wrap clearfix">
+		<div class="l_wrap fl clearfix">
+			<div class="new_goods">
+				<h3>新品推荐</h3>
+				<ul>
+					<li>
+						<a href="#"><img src="images/goods/goods001.jpg"></a>
+						<h4><a href="#">进口柠檬</a></h4>
+						<div class="prize">￥3.90</div>
+					</li>
+					<li>
+						<a href="#"><img src="images/goods/goods002.jpg"></a>
+						<h4><a href="#">玫瑰香葡萄</a></h4>
+						<div class="prize">￥16.80</div>
+					</li>
+				</ul>
+			</div>
+		</div>
+
+		<div class="r_wrap fr clearfix">
+			<ul class="detail_tab clearfix">
+				<li class="active">商品介绍</li>
+				<li>评论</li>
+			</ul>
+
+			<div class="tab_content">
+				<dl>
+					<dt>商品详情：</dt>
+					<dd>
+                        {% if goods.goods_desc != null %}
+                            {{ goods.goods_desc | safe }}
+                        {% endif %}
+                    </dd>
+				</dl>
+			</div>
+
+		</div>
+	</div>
+
+{% endblock %}
+
+{% block bot_js %}
+    <div class="add_jump"></div>
+    <script type="text/javascript" src="/static/js/jquery-1.12.2.js"></script>
+
+	<script type="text/javascript">
+
+		var $add_x = $('#add_cart').offset().top;
+		var $add_y = $('#add_cart').offset().left;
+
+		var $to_x = $('#show_count').offset().top;
+		var $to_y = $('#show_count').offset().left;
+
+		$(".add_jump").css({'left':$add_y+80,'top':$add_x+10,'display':'block'})
+		$('#add_cart').click(function(){
+		    var num = parseInt($('#show_count').html())
+			$(".add_jump").stop().animate({
+				'left': $to_y+7,
+				'top': $to_x+7},
+				"fast", function() {
+					$(".add_jump").fadeOut('fast',function(){
+						$('#show_count').html(num+1);
+					});
+
+			});
+		    var id = $('#goods_id').val();
+            var goods_nums = $('#g_num').val();
+            var csrf = $('input[name="csrfmiddlewaretoken"]').val()
+            $.ajax({
+                url:'/cart/addcart/',
+                dataType: 'json',
+                type: 'POST',
+                data: {'goods_id':id, 'goods_nums': goods_nums},
+               headers:{'X-CSRFToken':csrf},
+                success: function (data) {
+                    alert(data.msg);
+                    $('#show_count').val(data.len)
+                },
+                error: function (data) {
+                    alert('添加商品失败');
+                }
+            })
+
+
+
+		})
+
+    $(function () {
+        var shop_price = parseFloat($('#shop_price').html());
+        $('#add_num').click(function () {
+            if($('#g_num').val() != '') {
+                var num = 0;
+                if (parseInt($('#g_g_number').html()) < parseInt($('#g_num').val())) {
+                    num = parseInt($('#g_g_number').html());
+                    alert('超出库存');
+                    $('#g_num').val(num);
+                    var total_price = shop_price * num;
+                    $('#total_price').html(total_price + '￥');
+                } else {
+                    num = $('#g_num').val()
+                    var new_num = parseInt(num) + 1;
+                    $('#g_num').val(new_num)
+                    var total_price = shop_price * new_num;
+                    $('#total_price').html(total_price + '￥');
+                }
+            }
+        });
+
+        $('#dri_num').click(function () {
+            if (parseInt($('#g_num').val())>1) {
+                    var num = 0;
+                if (parseInt($('#g_g_number').html()) < parseInt($('#g_num').val())){
+                    num = parseInt($('#g_g_number').html());
+                    alert('超出库存');
+                    $('#g_num').val(num);
+                    var total_price = shop_price * num;
+                    $('#total_price').html(total_price + '￥');
+                }else {
+                    num = $('#g_num').val();
+                    var new_num = parseInt(num) - 1;
+                    $('#g_num').val(new_num)
+                    var total_price = shop_price * new_num;
+                    $('#total_price').html(total_price + '￥');
+                }
+            }
+        })
+        $('#g_num').on('input', function () {
+            if (parseInt($('#g_num').val()) >= 0) {
+                    var num = 0;
+                if (parseInt($('#g_g_number').html()) < parseInt($('#g_num').val())){
+                    num = parseInt($('#g_g_number').html());
+                    alert('超出库存');
+                    $('#g_num').val(num);
+                    var total_price = shop_price * num;
+                    $('#total_price').html(total_price + '￥');
+                }else {
+                    var num = $('#g_num').val();
+                    var total_price = shop_price * parseInt(num);
+                    $('#total_price').html(total_price + '￥')
+                }
+            }
+        })
+        $('.buy_btn').click(function () {
+            var num = $('#g_num').val()
+            var goods_id = $('#goods_id').val()
+            var csrf = $('input[name="csrfmiddlewaretoken"]').val()
+            $.ajax(
+                {
+                    url:'{% url 'cart:addcart' %}',
+                    type: 'POST',
+                    dataType: 'json',
+                    headers:{'X-CSRFToken':csrf},
+                    data:{'goods_nums': num, 'goods_id': goods_id},
+                    success:function (data) {
+                        alert(data.msg+'请去购物车中结算')
+                    },
+                    error: function (data) {
+                        alert('添加失败')
+                    }
+
+                }
+            )
+        })
+    })
+	</script>
+{% endblock %}
